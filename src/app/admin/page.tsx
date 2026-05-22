@@ -25,8 +25,18 @@ export default async function AdminDashboardPage() {
     <main className="mx-auto max-w-5xl px-6 py-10">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-3xl font-bold text-white">Admin</h1>
-        <div className="text-sm text-white/60">
-          Signed in as <span className="text-white">{user?.email ?? '—'}</span>
+        <div className="flex items-center gap-3 text-sm text-white/60">
+          <span>
+            Signed in as <span className="text-white">{user?.email ?? '—'}</span>
+          </span>
+          <form action="/auth/signout" method="post">
+            <button
+              type="submit"
+              className="rounded-md border border-white/15 px-3 py-1.5 text-xs font-medium text-white/70 hover:bg-white/5"
+            >
+              Sign out
+            </button>
+          </form>
         </div>
       </div>
 
