@@ -4,8 +4,10 @@ import type {
   Category,
   CategoryBreakdown,
   FeedEntry,
+  ImpactEvent,
   LeaderboardRow,
   MultiplierEvent,
+  Submission,
   Team,
   ViewTier,
 } from './types';
@@ -16,6 +18,8 @@ import {
   mockCategoryBreakdown,
   mockFeed,
   mockLeaderboard,
+  mockPendingSubmissions,
+  mockRecentApprovals,
   mockTeams,
   mockViewTiers,
 } from './fixtures';
@@ -138,6 +142,44 @@ export async function getFormBootstrap(): Promise<FormBootstrap> {
     viewTiers: (tiersRes.data ?? []) as ViewTier[],
     multiplierEvents: (mulRes.data ?? []) as MultiplierEvent[],
   };
+}
+
+// Admin review queue: pending submissions joined with their team.
+export type PendingSubmissionRow = Submission & {
+  team: { id: string; name: string; slug: string } | null;
+};
+
+export async function getPendingSubmissions(): Promise<PendingSubmissionRow[]> {
+  if (isUsingPlaceholderSupabase()) return mockPendingSubmissions();
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from('submissions')
+    .select('*, team:teams(id, name, slug)')
+    .eq('status', 'pending')
+    .order('created_at', { ascending: true });
+
+  return (data ?? []) as unknown as PendingSubmissionRow[];
+}
+
+// Recently approved impact_events with team + action — for the undo strip.
+export type RecentApprovalRow = ImpactEvent & {
+  team: { name: string; slug: string } | null;
+  action: { label: string; category: string } | null;
+};
+
+export async function getRecentApprovals(limit = 8): Promise<RecentApprovalRow[]> {
+  if (isUsingPlaceholderSupabase()) return mockRecentApprovals(limit);
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from('impact_events')
+    .select('*, team:teams(name, slug), action:actions(label, category)')
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  return (data ?? []) as unknown as RecentApprovalRow[];
 }
 
 export async function getRecentFeed(limit = 20): Promise<FeedEntry[]> {

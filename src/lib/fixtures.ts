@@ -10,6 +10,7 @@ import type {
   ImpactEvent,
   LeaderboardRow,
   CategoryBreakdown,
+  Submission,
   Team,
   ViewTier,
 } from './types';
@@ -154,6 +155,57 @@ export function mockCategoryBreakdown(): CategoryBreakdown[] {
     if (bucket) bucket.points += e.points;
   }
   return [...byCategory.values()].filter((b) => b.points > 0);
+}
+
+// Mock pending submissions for the admin review queue demo.
+export function mockPendingSubmissions(): (Submission & {
+  team: { id: string; name: string; slug: string } | null;
+})[] {
+  const rows: Array<[string, string, string, number | null, string[], string | null, string]> = [
+    ['team-19', 'instagram_reel',           'Jasmine R.', 320000, ['same_day_event_recap', 'first_creator_to_post'], 'https://instagram.com/p/example1', 'Behind-the-scenes from Pitch 25 — caught the crowd reaction live.'],
+    ['team-07', 'youtube_vlog',             'Marcus T.',  680000, [],                                                  'https://youtube.com/watch?v=example2', 'Day-in-the-life across 4 hidden gems in East End.'],
+    ['team-12', 'qr_code_scans',            'Sara L.',    87,     [],                                                  null, 'Tourism route activation at McNair Park.'],
+    ['team-03', 'volunteer_participation',  'Devon K.',   null,   [],                                                  null, 'Camp Hope Coalition Sunday wellness drive — 4 hours.'],
+    ['team-25', 'hidden_gem_feature',       'Andre M.',   12500,  ['viral_post_24hr'],                                 'https://tiktok.com/@andre/video/example3', 'East End taqueria nobody knows — went viral.'],
+  ];
+
+  return rows.map(([team_id, action_type, creator_name, metric_value, bonus_flags, post_url, description], i) => {
+    const team = mockTeams.find((t) => t.id === team_id);
+    return {
+      id: `pending-${i}`,
+      team_id,
+      creator_name,
+      action_type,
+      post_url,
+      metric_value,
+      bonus_flags,
+      description,
+      screenshot_url: null,
+      submitter_email: null,
+      submitted_action_type: action_type,
+      submitted_metric_value: metric_value,
+      submitted_bonus_flags: bonus_flags,
+      computed_points: 0, // recomputed in UI
+      status: 'pending' as const,
+      reviewed_by: null,
+      reviewed_at: null,
+      rejection_reason: null,
+      created_at: new Date(Date.now() - (i + 1) * 17 * 60_000).toISOString(),
+      team: team ? { id: team.id, name: team.name, slug: team.slug } : null,
+    };
+  });
+}
+
+export function mockRecentApprovals(limit = 8) {
+  return MOCK_EVENTS.slice(0, limit).map((e) => {
+    const team = mockTeams.find((t) => t.id === e.team_id) ?? null;
+    const action = mockActions.find((a) => a.type === e.action_type) ?? null;
+    return {
+      ...e,
+      team: team ? { name: team.name, slug: team.slug } : null,
+      action: action ? { label: action.label, category: action.category } : null,
+    };
+  });
 }
 
 export function mockFeed(limit = 20): FeedEntry[] {

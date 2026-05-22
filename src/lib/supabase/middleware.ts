@@ -5,6 +5,15 @@ import { NextResponse, type NextRequest } from 'next/server';
 // Refreshes the Supabase session cookie on every matched request and,
 // for /admin/* routes, verifies the user is on the admins allowlist.
 export async function updateSession(request: NextRequest) {
+  // Dev-only bypass: when running against placeholder Supabase env, skip
+  // auth entirely so the admin UI can be exercised without a real session.
+  // In any real deploy NEXT_PUBLIC_SUPABASE_URL is the actual project URL,
+  // so this branch is dead code in production.
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
+  if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
+    return NextResponse.next({ request });
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
