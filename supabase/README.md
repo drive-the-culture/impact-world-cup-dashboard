@@ -12,9 +12,14 @@ One-time setup for the Impact World Cup dashboard's database.
 
 In the Supabase dashboard, open **SQL Editor** and run each file in order:
 
-1. `migrations/0001_init_schema.sql` — tables
+1. `migrations/0001_init_schema.sql` — tables (categories, actions, view_tiers,
+   multiplier_events, teams, submissions, impact_events, admins)
 2. `migrations/0002_rls_policies.sql` — Row Level Security
-3. `migrations/0003_seed.sql` — placeholder teams, scoring rules, first admin
+3. `migrations/0003_seed.sql` — Chris's full rubric (categories, ~50 actions,
+   view tiers), 30 placeholder teams, first admin email
+
+See [`SCORING_RUBRIC.md`](./SCORING_RUBRIC.md) for the source rubric that
+drives the seed data.
 
 ## 3. Enable Realtime on `impact_events`
 
