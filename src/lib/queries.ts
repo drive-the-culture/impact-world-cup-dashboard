@@ -186,10 +186,13 @@ export async function getRecentFeed(limit = 20): Promise<FeedEntry[]> {
   if (isUsingPlaceholderSupabase()) return mockFeed(limit);
 
   const supabase = await createClient();
+  // impact_events doesn't have a description column — that lives on
+  // submissions. Join through if we ever want it; for now feed renders
+  // without one (the action label + team + creator already tell the story).
   const { data } = await supabase
     .from('impact_events')
     .select(
-      `id, team_id, creator_name, action_type, points, description, created_at,
+      `id, team_id, creator_name, action_type, points, created_at,
        team:teams(name, slug, logo_url),
        action:actions(label, category)`,
     )
@@ -203,7 +206,6 @@ export async function getRecentFeed(limit = 20): Promise<FeedEntry[]> {
     creator_name: string | null;
     action_type: string;
     points: number;
-    description: string | null;
     created_at: string;
     team: { name: string; slug: string; logo_url: string | null } | null;
     action: { label: string; category: string } | null;
@@ -219,7 +221,7 @@ export async function getRecentFeed(limit = 20): Promise<FeedEntry[]> {
     action_label: e.action?.label ?? e.action_type,
     category: e.action?.category ?? 'unknown',
     points: Number(e.points),
-    description: e.description,
+    description: null,
     creator_name: e.creator_name,
     created_at: e.created_at,
   }));
