@@ -39,26 +39,33 @@ export const mockViewTiers: ViewTier[] = [
 ];
 
 // Trimmed subset of actions — full set is in 0003_seed.sql.
-// Enough to render the dashboard + category breakdown.
-export const mockActions: Action[] = [
-  ['instagram_reel',           'content_creation', 'Instagram Reel',           100, 'views'],
-  ['tiktok_video',             'content_creation', 'TikTok Video',             100, 'views'],
-  ['youtube_vlog',             'content_creation', 'YouTube Vlog',             300, 'views'],
-  ['livestream_session',       'content_creation', 'Livestream Session',       300, 'views'],
-  ['nonprofit_spotlight',      'hidden_gems',      'Nonprofit spotlight',      250, 'views'],
-  ['hidden_gem_feature',       'hidden_gems',      'Hidden Gem location feature', 150, 'views'],
-  ['qr_code_scans',            'hidden_gems',      'QR code scans generated',  0,   'per_unit'],
-  ['volunteer_participation',  'community_impact', 'Volunteer participation',  250, 'views'],
-  ['team_collaboration_post',  'team_support',     'Team collaboration post',  150, 'views'],
-].map(([type, category, label, base_points, metric_kind], i) => ({
-  type: type as string,
-  category: category as string,
-  label: label as string,
-  base_points: base_points as number,
+// Includes a couple of bonuses so the /submit form UI is exercisable in
+// demo mode without the real DB.
+type ActionTuple = [type: string, category: string, label: string, base_points: number, metric_kind: Action['metric_kind'], is_bonus?: boolean];
+const MOCK_ACTION_DATA: ActionTuple[] = [
+  ['instagram_reel',           'content_creation', 'Instagram Reel',                100, 'views'],
+  ['tiktok_video',             'content_creation', 'TikTok Video',                  100, 'views'],
+  ['youtube_vlog',             'content_creation', 'YouTube Vlog',                  300, 'views'],
+  ['livestream_session',       'content_creation', 'Livestream Session',            300, 'views'],
+  ['nonprofit_spotlight',      'hidden_gems',      'Nonprofit spotlight',           250, 'views'],
+  ['hidden_gem_feature',       'hidden_gems',      'Hidden Gem location feature',   150, 'views'],
+  ['qr_code_scans',            'hidden_gems',      'QR code scans generated',         0, 'per_unit'],
+  ['volunteer_participation',  'community_impact', 'Volunteer participation',       250, 'views'],
+  ['team_collaboration_post',  'team_support',     'Team collaboration post',       150, 'views'],
+  ['first_creator_to_post',    'speed_of_impact',  'First creator to post from event', 250, 'none', true],
+  ['same_day_event_recap',     'speed_of_impact',  'Same-day event recap',          150, 'none', true],
+  ['viral_post_24hr',          'speed_of_impact',  'Viral post within 24 hours',    500, 'none', true],
+];
+
+export const mockActions: Action[] = MOCK_ACTION_DATA.map(([type, category, label, base_points, metric_kind, is_bonus], i) => ({
+  type,
+  category,
+  label,
+  base_points,
   per_unit_points: type === 'qr_code_scans' ? 10 : null,
-  metric_kind: metric_kind as Action['metric_kind'],
+  metric_kind,
   metric_label: metric_kind === 'views' ? 'Total views' : metric_kind === 'per_unit' ? 'QR scans' : null,
-  is_bonus: false,
+  is_bonus: Boolean(is_bonus),
   is_subjective: false,
   is_active: true,
   sort_order: 100 + i * 10,

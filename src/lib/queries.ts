@@ -1,14 +1,23 @@
 import { createClient } from './supabase/server';
 import type {
+  Action,
+  Category,
   CategoryBreakdown,
   FeedEntry,
   LeaderboardRow,
+  MultiplierEvent,
+  Team,
+  ViewTier,
 } from './types';
 import {
   isUsingPlaceholderSupabase,
+  mockActions,
+  mockCategories,
   mockCategoryBreakdown,
   mockFeed,
   mockLeaderboard,
+  mockTeams,
+  mockViewTiers,
 } from './fixtures';
 
 // Data layer for the public dashboard. Uses Supabase when configured,
@@ -85,6 +94,50 @@ export async function getCategoryBreakdown(): Promise<CategoryBreakdown[]> {
     if (row) row.points += Number(e.points);
   }
   return [...map.values()].filter((b) => b.points > 0);
+}
+
+// Form data — teams + categories + actions + view tiers + active multipliers.
+// One round-trip when the form mounts.
+export type FormBootstrap = {
+  teams: Team[];
+  categories: Category[];
+  actions: Action[];
+  viewTiers: ViewTier[];
+  multiplierEvents: MultiplierEvent[];
+};
+
+export async function getFormBootstrap(): Promise<FormBootstrap> {
+  if (isUsingPlaceholderSupabase()) {
+    return {
+      teams: mockTeams,
+      categories: mockCategories,
+      actions: mockActions,
+      viewTiers: mockViewTiers,
+      multiplierEvents: [],
+    };
+  }
+
+  const supabase = await createClient();
+  const nowIso = new Date().toISOString();
+  const [teamsRes, catsRes, actionsRes, tiersRes, mulRes] = await Promise.all([
+    supabase.from('teams').select('*').order('name'),
+    supabase.from('categories').select('*').order('sort_order'),
+    supabase.from('actions').select('*').eq('is_active', true).order('sort_order'),
+    supabase.from('view_tiers').select('*').order('min_views'),
+    supabase
+      .from('multiplier_events')
+      .select('*')
+      .lte('starts_at', nowIso)
+      .gte('ends_at', nowIso),
+  ]);
+
+  return {
+    teams: (teamsRes.data ?? []) as Team[],
+    categories: (catsRes.data ?? []) as Category[],
+    actions: (actionsRes.data ?? []) as Action[],
+    viewTiers: (tiersRes.data ?? []) as ViewTier[],
+    multiplierEvents: (mulRes.data ?? []) as MultiplierEvent[],
+  };
 }
 
 export async function getRecentFeed(limit = 20): Promise<FeedEntry[]> {
