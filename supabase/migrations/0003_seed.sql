@@ -6,16 +6,19 @@
 
 -- ---------------------------------------------------------------------------
 -- categories — the 8 rubric buckets, drives the donut chart + form grouping
+-- Emojis are written via chr(codepoint) instead of literal UTF-8 bytes so
+-- they survive being pasted through encoding-clueless SQL editors and
+-- clipboards (we hit this on first prod seed: 🎥 → 'üé•' mojibake).
 -- ---------------------------------------------------------------------------
 insert into public.categories (type, label, emoji, sort_order) values
-  ('content_creation',    'Content Creation',         '🎥', 1),
-  ('engagement',          'Engagement Performance',   '🚀', 2),
-  ('hidden_gems',         'Hidden Gems of Houston',   '📍', 3),
-  ('community_impact',    'Community Impact',         '🤝', 4),
-  ('speed_of_impact',     'Speed of Impact',          '⚡', 5),
-  ('team_support',        'Team Support',             '🏆', 6),
-  ('culture_creativity',  'Culture & Creativity',     '🎨', 7),
-  ('tourism_impact',      'Tourism Impact',           '🌎', 8);
+  ('content_creation',    'Content Creation',       chr(127909), 1),  -- 🎥
+  ('engagement',          'Engagement Performance', chr(128640), 2),  -- 🚀
+  ('hidden_gems',         'Hidden Gems of Houston', chr(128205), 3),  -- 📍
+  ('community_impact',    'Community Impact',       chr(129309), 4),  -- 🤝
+  ('speed_of_impact',     'Speed of Impact',        chr(9889),   5),  -- ⚡
+  ('team_support',        'Team Support',           chr(127942), 6),  -- 🏆
+  ('culture_creativity',  'Culture & Creativity',   chr(127912), 7),  -- 🎨
+  ('tourism_impact',      'Tourism Impact',         chr(127758), 8);  -- 🌎
 
 -- ---------------------------------------------------------------------------
 -- view_tiers — engagement step function (highest matching tier wins)
